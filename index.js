@@ -21,7 +21,9 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app'] 
+      : "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -181,6 +183,6 @@ app.get("/health", (req, res) => {
 });
 
 app.listen(port, () => {
-  // connect();
-  console.log("Server running on 3000");
+  console.log(`Server running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

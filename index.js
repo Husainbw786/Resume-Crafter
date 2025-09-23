@@ -22,7 +22,11 @@ const __dirname = path.dirname(__filename);
 app.use(
   cors({
     origin: process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app'] 
+      ? [
+          process.env.FRONTEND_URL || 'https://resume-cafter-frontend.vercel.app',
+          'https://resume-cafter-frontend.vercel.app',
+          'https://tech.resume.crafter'
+        ] 
       : "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -109,6 +113,9 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
 app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
+  
+  console.log("GET /api/chats - User ID:", userId);
+  console.log("GET /api/chats - Headers:", req.headers);
 
   try {
     const userChats = await UserChats.find({ userId });
@@ -122,7 +129,7 @@ app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
     res.status(200).send({ chats: userChats[0].chats, additional_prompt: promptData.additional_prompt });
   } catch (err) {
-    console.log(err);
+    console.error("Error in GET /api/chats:", err);
     res.status(500).send("Error fetching user chats!");
   }
 });
@@ -174,8 +181,23 @@ app.use("/ai", aiRoutes);
 app.use("/api/prompt", promptRoutes);
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(401).send("Unauthenticated!");
+  console.error("Error middleware triggered:", err);
+  console.error("Error stack:", err.stack);
+  console.error("Request URL:", req.url);
+  console.error("Request headers:", req.headers);
+  
+  if (err.name === 'ClerkAuthenticationError') {
+    return res.status(401).json({ 
+      error: "Authentication failed", 
+      message: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
+  
+  res.status(401).json({ 
+    error: "Unauthenticated", 
+    message: err.message || "Authentication required"
+  });
 });
 
 app.get("/health", (req, res) => {

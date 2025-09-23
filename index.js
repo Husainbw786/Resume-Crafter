@@ -204,6 +204,23 @@ app.get("/health", (req, res) => {
   res.send({ status: "up" });
 });
 
+app.get("/debug", (req, res) => {
+  res.json({
+    status: "debug info",
+    environment: process.env.NODE_ENV || 'development',
+    hasClerkKeys: !!(process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY),
+    hasFrontendUrl: !!process.env.FRONTEND_URL,
+    corsOrigins: process.env.NODE_ENV === 'production' 
+      ? [
+          process.env.FRONTEND_URL || 'https://resume-cafter-frontend.vercel.app',
+          'https://resume-cafter-frontend.vercel.app',
+          'https://tech.resume.crafter'
+        ] 
+      : "*",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

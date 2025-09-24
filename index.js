@@ -21,13 +21,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? [
-          process.env.FRONTEND_URL || 'https://resume-cafter-frontend.vercel.app',
-          'https://resume-cafter-frontend.vercel.app',
-          'https://tech.resume.crafter'
-        ] 
-      : "*",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

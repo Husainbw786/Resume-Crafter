@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import { requireAuth } from "@clerk/express";
 import { SavePrompt } from '../controllers/userChat.js';
 
 const router = Router();
 
-router.post('/',ClerkExpressRequireAuth(), SavePrompt);
+router.post('/', requireAuth(), SavePrompt);
 
 export default router;

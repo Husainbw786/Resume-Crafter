@@ -6,7 +6,7 @@ import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 import aiRoutes from "./routes/ai_routes.js";
 import promptRoutes from "./routes/prompt_routes.js";
 import { getPrompt } from "./controllers/userChat.js"; // Import getPrompt
@@ -35,7 +35,14 @@ app.use(
 );
 app.options('*', cors());
 app.use(express.json());
-mongoose.connect(process.env.MONGO, { useNewUrlParser: true, useUnifiedTopology: true, }) .then(() => { console.log("MongoDB connected successfully!"); }) .catch((err) => { console.error("Error connecting to MongoDB:", err.message); });
+app.use(clerkMiddleware());
+mongoose.connect(process.env.MONGO)
+  .then(() => { 
+    console.log("MongoDB connected successfully!"); 
+  })
+  .catch((err) => { 
+    console.error("Error connecting to MongoDB:", err.message); 
+  });
 // const connect = async () => {
 //   try {
 //     await mongoose.connect(process.env.MONGO);
@@ -59,7 +66,7 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
+app.post("/api/chats", requireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   const { text } = req.body;
 
@@ -111,7 +118,7 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
+app.get("/api/chats", requireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   
   console.log("GET /api/chats - User ID:", userId);
@@ -134,7 +141,7 @@ app.get("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+app.get("/api/chats/:id", requireAuth(), async (req, res) => {
   const userId = req.auth.userId;
 
   try {
@@ -146,7 +153,7 @@ app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+app.put("/api/chats/:id", requireAuth(), async (req, res) => {
   const userId = req.auth.userId;
 
   const { question, answer, img } = req.body;

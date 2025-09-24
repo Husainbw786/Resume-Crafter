@@ -119,10 +119,16 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
 });
 
 app.get("/api/chats", requireAuth(), async (req, res) => {
-  const userId = req.auth.userId;
+  const userId = req.auth?.userId;
   
   console.log("GET /api/chats - User ID:", userId);
-  console.log("GET /api/chats - Headers:", req.headers);
+  console.log("GET /api/chats - Auth object:", req.auth);
+  console.log("GET /api/chats - Headers:", req.headers.authorization ? 'Bearer token present' : 'No auth header');
+
+  if (!userId) {
+    console.error("No userId found in request.auth");
+    return res.status(401).json({ error: "User ID not found in authentication" });
+  }
 
   try {
     const userChats = await UserChats.find({ userId });
@@ -184,6 +190,23 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
   }
 });
 
+app.get("/api/debug", (req, res) => {
+  res.json({
+    status: "debug info",
+    environment: process.env.NODE_ENV || 'development',
+    hasClerkKeys: !!(process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY),
+    hasFrontendUrl: !!process.env.FRONTEND_URL,
+    corsOrigins: process.env.NODE_ENV === 'production' 
+      ? [
+          process.env.FRONTEND_URL || 'https://resume-cafter-frontend.vercel.app',
+          'https://resume-cafter-frontend.vercel.app',
+          'https://tech.resume.crafter'
+        ] 
+      : "*",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use("/ai", aiRoutes);
 app.use("/api/prompt", promptRoutes);
 
@@ -211,22 +234,6 @@ app.get("/health", (req, res) => {
   res.send({ status: "up" });
 });
 
-app.get("/debug", (req, res) => {
-  res.json({
-    status: "debug info",
-    environment: process.env.NODE_ENV || 'development',
-    hasClerkKeys: !!(process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY),
-    hasFrontendUrl: !!process.env.FRONTEND_URL,
-    corsOrigins: process.env.NODE_ENV === 'production' 
-      ? [
-          process.env.FRONTEND_URL || 'https://resume-cafter-frontend.vercel.app',
-          'https://resume-cafter-frontend.vercel.app',
-          'https://tech.resume.crafter'
-        ] 
-      : "*",
-    timestamp: new Date().toISOString()
-  });
-});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

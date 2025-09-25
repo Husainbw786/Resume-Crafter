@@ -20,8 +20,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(
-  cors()
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["*"],
+    credentials: true,
+  })
 );
+app.options("*", (req, res) => {
+  res.sendStatus(200); // always respond to OPTIONS
+});
 app.use(express.json());
 app.use(clerkMiddleware());
 mongoose.connect(process.env.MONGO)

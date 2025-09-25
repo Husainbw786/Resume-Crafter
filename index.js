@@ -60,7 +60,7 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-app.post("/api/chats", requireAuth(), async (req, res) => {
+app.post("/api/chats", requireAuth({publishableKey: process.env.CLERK_PUBLISHABLE_KEY}), async (req, res) => {
   const userId = req.auth.userId;
   const { text } = req.body;
 
